@@ -2,6 +2,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import express from "express";
 import databaseClient from "./services/database.mjs";
+import crudRouter from "./routes/crudRouter.js";
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
@@ -10,12 +11,15 @@ const PORT = process.env.SERVER_PORT || 3000;
 dotenv.config();
 const webServer = express();
 webServer.use(cors());
+webServer.use(express.urlencoded({ extended: false }));
+webServer.use(express.json())
 
+webServer.use(crudRouter);
 
 // server router
-webServer.get("/", (req,res) => {
-  res.send("Hello World From G9-Final-Project")
-})
+webServer.get("/", (req, res) => {
+  res.status(200).send("Hello World From G9-Final-Project");
+});
 
 // initilize web server
 const currentServer = webServer.listen(PORT, HOSTNAME, () => {
