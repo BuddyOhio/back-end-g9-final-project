@@ -3,7 +3,7 @@ import cors from "cors";
 import express from "express";
 import databaseClient from "./services/database.mjs";
 
-const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
+// const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
 
 // setting initial configuration for upload file, web server (express), and cors
@@ -18,11 +18,11 @@ webServer.get("/", (req,res) => {
 })
 
 // initilize web server
-const currentServer = webServer.listen(PORT, HOSTNAME, () => {
+const currentServer = webServer.listen(PORT, () => {
   console.log(
     `DATABASE IS CONNECTED: NAME => ${databaseClient.db().databaseName}`
   );
-  console.log(`SERVER IS ONLINE => http://${HOSTNAME}:${PORT}`);
+  // console.log(`SERVER IS ONLINE => http://${HOSTNAME}:${PORT}`);
 });
 
 const cleanup = () => {
