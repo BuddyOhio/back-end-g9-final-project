@@ -2,6 +2,7 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import databaseClient from "../services/database.mjs";
 import { format } from "date-fns";
+
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -60,7 +61,7 @@ router.post("/add-activity", async (req, res) => {
   res.status(200).send("Add activity seccess");
 });
 
-router.post("/delete-activity", async (req, res) => {
+router.delete("/delete-activity", async (req, res) => {
   const { activityDelete } = req.body;
 
   await databaseClient
@@ -70,5 +71,43 @@ router.post("/delete-activity", async (req, res) => {
 
   res.status(200).send("Delete activity seccess");
 });
+
+// router.get("/get-activity", async (req, res) => {
+//   // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
+//   const activityId = req.query.activityId;
+//   // console.log("activityId => ", typeof activityId);
+
+//   const activity = await databaseClient
+//     .db()
+//     .collection("users_activities")
+//     .findOne({ _id: new ObjectId(activityId) }, { projection: { userId: 0 } });
+
+//   if (!activity) {
+//     // มันขึ้น 200 ที่ browser และรับ Array เปล่า
+//     res.status(400).send("No data");
+//     return;
+//   }
+
+//   const formatActivity = (activity) => {
+//     const { _id, ...rest } = activity;
+
+//     return {
+//       ...rest,
+//       // activityDateStr: format(activity.activityDate, "iii MMM dd yyyy"),
+//       // activityTimeStr: format(activity.activityDate, "HH:mm"),
+//       activityId: _id,
+//     };
+//   };
+
+//   const sendActivity = formatActivity(activity);
+
+//   res.status(200).json(sendActivity);
+//   // res.status(200).send("Hello");
+// });
+
+router.put("/edit-activity"),
+  async (req, res) => {
+    const body = req.body;
+  };
 
 export default router;
