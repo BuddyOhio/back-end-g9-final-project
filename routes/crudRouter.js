@@ -12,7 +12,7 @@ router.get("/get-activities", async (req, res) => {
   // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
   const allActivity = await databaseClient
     .db()
-    .collection("users_activity")
+    .collection("users_activities")
     .find(
       { userId: new ObjectId("65b227e6d9ce065855e80f6b") },
       { projection: { userId: 0 } }
@@ -56,7 +56,7 @@ router.post("/add-activity", async (req, res) => {
     userId: new ObjectId("65b227e6d9ce065855e80f6b"),
   };
 
-  await databaseClient.db().collection("users_activity").insertOne(addUserId);
+  await databaseClient.db().collection("users_activities").insertOne(addUserId);
   res.status(200).send("Add activity seccess");
 });
 
@@ -65,7 +65,7 @@ router.post("/delete-activity", async (req, res) => {
 
   await databaseClient
     .db()
-    .collection("users_activity")
+    .collection("users_activities")
     .deleteOne({ _id: new ObjectId(activityDelete) });
 
   res.status(200).send("Delete activity seccess");
