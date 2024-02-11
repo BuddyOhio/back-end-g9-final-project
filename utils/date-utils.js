@@ -11,3 +11,21 @@ export function addDays(d, days) {
 export function addMinutes(date, minutes) {
   return new Date(date.getTime() + minutes * 60000);
 }
+
+export function getDayName(date, locale)
+{
+    return date.toLocaleDateString(locale, { weekday: 'long' });        
+}
+
+
+export function getWeekDays(locale)
+{
+    var baseDate = new Date(Date.UTC(2017, 0, 2)); // just a Monday
+    var weekDays = [];
+    for(var i = 0; i < 7; i++)
+    {       
+        weekDays.push(baseDate.toLocaleDateString(locale, { weekday: 'long' }));
+        baseDate.setDate(baseDate.getDate() + 1);       
+    }
+    return weekDays;
+}

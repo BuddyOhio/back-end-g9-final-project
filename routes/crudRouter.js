@@ -2,13 +2,14 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import databaseClient from "../services/database.mjs";
 import { format } from "date-fns";
-import { getMonday, addDays, addMinutes } from "../utils/date-utils.js";
+import { getMonday, addDays, addMinutes, getDayName, getWeekDays } from "../utils/date-utils.js";
 
 const router = express.Router();
+const locale = "en-us";
 
 router.get("/get-dashboard-activities", async (req, res) => {
   // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
-  const allActivities = await databaseClient
+  var allActivities = await databaseClient
     .db()
     .collection("users_activities")
     .find(
@@ -18,6 +19,14 @@ router.get("/get-dashboard-activities", async (req, res) => {
       { projection: { userId: 0 } }
     )
     .toArray();
+    allActivities = allActivities.map((activity) => 
+    {
+      return {
+        ...activity, 
+        dayOfWeek: getDayName(activity.activityDate, locale)
+      }
+    }
+  );
 
   if (!allActivities) {
     // มันขึ้น 200 ที่ browser และรับ Array เปล่า
@@ -45,17 +54,18 @@ router.get("/get-dashboard-activities", async (req, res) => {
   );
 
   const response = {
-    dailyActivities: formatActivitiesForDashboard(dailyActivities),
-    weeklyActivities: formatActivitiesForDashboard(weeklyActivities),
-    allActivities: formatActivitiesForDashboard(allActivities),
+    donutDailyActivities: formatActivitiesForDonutChart(dailyActivities),
+    donutWeeklyActivities: formatActivitiesForDonutChart(weeklyActivities),
+    donutAllActivities: formatActivitiesForDonutChart(allActivities),
+    columnsWeeklyActivities: formatActivitiesForColumnsChart(weeklyActivities)
   };
 
   res.status(200).json(response);
 });
 
-function formatActivitiesForDashboard(activities) {
-  return Object.values(
-    activities.reduce((result, { activityType, activityDuration }) => {
+function formatActivitiesForDonutChart(activities) {
+  return activities && Object.values(
+    activities.reduce((result, { activityType, activityDuration}) => {
       // Create new group
       if (!result[activityType])
         result[activityType] = {
@@ -72,8 +82,39 @@ function formatActivitiesForDashboard(activities) {
   );
 }
 
+function formatActivitiesForColumnsChart(activities) {
+  return activities && Object.values( 
+    activities.reduce((result, { activityType, activityDuration, dayOfWeek }) => {
+
+      // Create new group
+      if (!result.length)
+        result = getWeekDays(locale).map((day) => { return {
+          dayOfWeek: day,
+          activities: []
+          }
+        });
+      
+      const dayIndex = result.findIndex((day) => day.dayOfWeek == dayOfWeek);
+
+      if (!result[dayIndex].activities.find((activity) => activity.type== activityType))
+      result[dayIndex].activities.push({
+        type: activityType,
+        count: 0,
+        time: 0,
+      });
+
+      const activityIndex = result[dayIndex].activities.findIndex((activity) => activity.type== activityType);
+
+      result[dayIndex].activities[activityIndex].time += parseInt(activityDuration);
+      result[dayIndex].activities[activityIndex].count++;
+
+      return result;
+    }, {})
+  );
+}
+
 function filterActivitiesByDateRange(activities, dateStart, dateEnd) {
-  activities.filter((activity) => {
+  return activities.filter((activity) => {
     const activityEndDate = addMinutes(
       activity.activityDate,
       activity.activityDuration
