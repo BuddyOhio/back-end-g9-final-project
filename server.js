@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import databaseClient from "./services/database.mjs";
 import crudRouter from "./routes/crudRouter.js";
+import editProfile from "./routes/editProfile.js";
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
@@ -12,9 +13,10 @@ dotenv.config();
 const webServer = express();
 webServer.use(cors());
 webServer.use(express.urlencoded({ extended: false }));
-webServer.use(express.json())
+webServer.use(express.json());
 
 webServer.use(crudRouter);
+webServer.use(editProfile);
 
 // server router
 webServer.get("/", (req, res) => {
