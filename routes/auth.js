@@ -20,7 +20,8 @@ const userSchema = new Schema(
   { timestamps: true }
 );
 
-const User = mongoose.model("User", userSchema);
+// const User = mongoose.model("User", userSchema);
+
 // ตรวจสอบว่า email มีรูปแบบที่ถูกต้องหรือไม่
 const isValidEmail = (email) => {
   const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
@@ -71,7 +72,11 @@ webServer.post("/register", async (req, res) => {
     return res.status(400).send({ error: { message: "entry your height" } });
   }
 
-  const existingUser = await User.findOne({ email });
+  const existingUser = await databaseClient
+    .db()
+    .collection("users_profile")
+    .findOne({ email });
+
   if (existingUser) {
     return res.status(400).send({ error: { message: "already exist" } });
   }
@@ -106,27 +111,33 @@ webServer.post("/login", async (req, res) => {
   if (inputPassword.length < 6) {
     return res.status(400).send({ error: { message: "password too short" } });
   }
+
   //  validation email
   const user = await databaseClient
     .db()
     .collection("users_profile")
     .findOne({ email: inputEmail });
-  console.log(user);
+
+  // console.log(user);
   if (!user) {
     return res
       .status(400)
       .send({ error: { message: "Invalid email or password" } });
   }
+
   // validation password
-  const validPassword = await bcrypt.compare(inputPassword, user.password);
+  const validPassword = await bcrypt.compareSync(inputPassword, user.password);
+
   if (!validPassword) {
     return res
       .status(400)
       .send({ error: { message: "Invalid email or password" } });
   }
+
   const { _id, email, password, ...other } = user;
   const token = createJwt(_id);
   const sendData = { _id, ...other };
+
   return res
     .cookie("access_token", token, {
       httpOnly: true,
