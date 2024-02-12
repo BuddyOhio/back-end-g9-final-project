@@ -1,27 +1,52 @@
 import dotenv from "dotenv";
-import cors from "cors";
 import express from "express";
 import databaseClient from "./services/database.mjs";
+import cors from "cors";
+import cookieParser from "cookie-parser";
+
 import crudRouter from "./routes/crudRouter.js";
 import editProfile from "./routes/editProfile.js";
+import auth from "./routes/auth.js";
+
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
 
 // setting initial configuration for upload file, web server (express), and cors
 dotenv.config();
-const webServer = express();
-webServer.use(cors());
-webServer.use(express.urlencoded({ extended: false }));
-webServer.use(express.json());
 
+// middle ware
+const webServer = express();
+
+
+webServer.use(express.json());
+webServer.use(express.urlencoded({ extended: true }));
+webServer.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
+webServer.use(cookieParser());
+
+const authorization = (req, res, next) => {
+  const token = req.cookies.access_token;
+  if (!token) {
+    return res.sendStatus(401);
+  }
+  try {
+    const data = jwt.verify(token, process.env.JWT_SECRET_KEY);
+    req.userId = data.id;
+    return next();
+  } catch {
+    return res.sendStatus(401);
+  }
+};
+
+
+webServer.use(auth)
 webServer.use(crudRouter);
 webServer.use(editProfile);
-
-// server router
-webServer.get("/", (req, res) => {
-  res.status(200).send("Hello World From G9-Final-Project");
-});
 
 // initilize web server
 const currentServer = webServer.listen(PORT, HOSTNAME, () => {
