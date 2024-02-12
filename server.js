@@ -1,10 +1,11 @@
 import dotenv from "dotenv";
 import express from "express";
 import databaseClient from "./services/database.mjs";
+
+import crudRouter from "./routes/crudRouter.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import auth from "./routes/auth.js";
-
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
@@ -24,7 +25,6 @@ webServer.use(
 );
 webServer.use(cookieParser());
 
-
 const authorization = (req, res, next) => {
   const token = req.cookies.access_token;
   if (!token) {
@@ -38,7 +38,10 @@ const authorization = (req, res, next) => {
     return res.sendStatus(401);
   }
 };
+
 webServer.use(auth)
+webServer.use(crudRouter);
+
 // initilize web server
 const currentServer = webServer.listen(PORT, HOSTNAME, () => {
   console.log(
