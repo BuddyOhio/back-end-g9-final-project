@@ -1,11 +1,13 @@
 import dotenv from "dotenv";
 import express from "express";
 import databaseClient from "./services/database.mjs";
-
-import crudRouter from "./routes/crudRouter.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+
+import crudRouter from "./routes/crudRouter.js";
+import editProfile from "./routes/editProfile.js";
 import auth from "./routes/auth.js";
+
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
@@ -15,6 +17,8 @@ dotenv.config();
 
 // middle ware
 const webServer = express();
+
+
 webServer.use(express.json());
 webServer.use(express.urlencoded({ extended: true }));
 webServer.use(
@@ -39,8 +43,10 @@ const authorization = (req, res, next) => {
   }
 };
 
+
 webServer.use(auth)
 webServer.use(crudRouter);
+webServer.use(editProfile);
 
 // initilize web server
 const currentServer = webServer.listen(PORT, HOSTNAME, () => {
