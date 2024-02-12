@@ -2,6 +2,7 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import databaseClient from "../services/database.mjs";
 import { format } from "date-fns";
+import "dotenv/config";
 
 const router = express.Router();
 
@@ -11,6 +12,13 @@ router.get("/", async (req, res) => {
 
 router.get("/get-activities", async (req, res) => {
   // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
+  const token = req.cookies.accessToken;
+  // if (!token) return res.status(401).json("Not logged in!");
+  if (!token) return res.redirect("/login")
+
+  const jwtSecretKey = process.env.JWT_SECRET_KEY;
+  jwt.verify(token, jwtSecretKey, async (err, userInfo) => {})
+
   const allActivity = await databaseClient
     .db()
     .collection("users_activities")
@@ -61,6 +69,37 @@ router.post("/add-activity", async (req, res) => {
   res.status(200).send("Add activity seccess");
 });
 
+router.put("/update-activity", async (req, res) => {
+  const body = req.body;
+  console.log("body => ", body);
+  const actDate = new Date(body.activityDate);
+  const actTime = new Date(body.activityTime);
+  const hour = actTime.getHours();
+  const min = actTime.getMinutes();
+
+  actDate.setHours(hour);
+  actDate.setMinutes(min);
+  const { activityID, activityTime, ...rest } = body;
+
+  // const addUserId = {
+  //   ...rest,
+  //   activityDate: actDate,
+  //   userId: new ObjectId("65b227e6d9ce065855e80f6b"),
+  // };
+
+  const addFotmatDate = {
+    ...rest,
+    activityDate: actDate,
+  };
+
+  // console.log(addFotmatDate);
+  await databaseClient
+    .db()
+    .collection("users_activities")
+    .updateOne({ _id: new ObjectId(activityID) }, { $set: addFotmatDate });
+  res.status(200).send("Update activity seccess");
+});
+
 router.delete("/delete-activity", async (req, res) => {
   const { activityDelete } = req.body;
 
@@ -104,10 +143,5 @@ router.delete("/delete-activity", async (req, res) => {
 //   res.status(200).json(sendActivity);
 //   // res.status(200).send("Hello");
 // });
-
-router.put("/edit-activity"),
-  async (req, res) => {
-    const body = req.body;
-  };
 
 export default router;
