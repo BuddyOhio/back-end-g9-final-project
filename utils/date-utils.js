@@ -14,7 +14,7 @@ export function addMinutes(date, minutes) {
 
 export function getDayName(date, locale)
 {
-    return date.toLocaleDateString(locale, { weekday: 'long' });        
+    return date.toLocaleDateString(locale, { weekday: 'long' });
 }
 
 

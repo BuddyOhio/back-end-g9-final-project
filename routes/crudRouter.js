@@ -9,6 +9,7 @@ const locale = "en-us";
 
 router.get("/get-dashboard-activities", async (req, res) => {
   // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
+  // Get data from database
   var allActivities = await databaseClient
     .db()
     .collection("users_activities")
@@ -19,6 +20,8 @@ router.get("/get-dashboard-activities", async (req, res) => {
       { projection: { userId: 0 } }
     )
     .toArray();
+
+    // Add dayOfWeek to all the activities in the array
     allActivities = allActivities.map((activity) => 
     {
       return {
@@ -34,7 +37,8 @@ router.get("/get-dashboard-activities", async (req, res) => {
     return;
   }
 
-  const currentDate = new Date("2024-02-16T18:00:00.000Z");
+  // Daily activities donut chart
+  const currentDate = new Date();
   const currentDateStart = new Date(currentDate.setHours(0, 0, 0, 0));
   const currentDateEnd = new Date(currentDate.setHours(23, 59, 59, 999));
 
@@ -44,6 +48,7 @@ router.get("/get-dashboard-activities", async (req, res) => {
     currentDateEnd
   );
 
+  // Weekly activities donut chart and columns chart
   var monday = new Date(getMonday(currentDate).setHours(0, 0, 0, 0)); // First day is the day of the month - the day of the week
   var sunday = new Date(addDays(monday, 6).setHours(23, 59, 59, 999));
 
@@ -65,6 +70,16 @@ router.get("/get-dashboard-activities", async (req, res) => {
 
 function formatActivitiesForDonutChart(activities) {
   return activities && Object.values(
+/*
+    SELECT
+      ActivityType as type,
+      COUNT(*) as count,
+      SUM(activityDuration) as time
+    FROM users_activities
+    GROUP BY 
+      ActivityType
+*/
+
     activities.reduce((result, { activityType, activityDuration}) => {
       // Create new group
       if (!result[activityType])
@@ -115,6 +130,7 @@ function formatActivitiesForColumnsChart(activities) {
 
 function filterActivitiesByDateRange(activities, dateStart, dateEnd) {
   return activities.filter((activity) => {
+
     const activityEndDate = addMinutes(
       activity.activityDate,
       activity.activityDuration
