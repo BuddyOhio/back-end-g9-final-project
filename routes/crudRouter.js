@@ -30,10 +30,7 @@ const EDIT_ACTIVITY_KEY = [
 ];
 const DELETE_ACTIVITY_KEY = ["activityDelete"];
 
-router.get("/", async (req, res) => {
-  res.send("Hello World From /add-activity");
-});
-
+// get act -------------------------------------------------------
 router.get("/get-act", async (req, res) => {
   // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
   // const token = req.cookies.abcde;
@@ -76,6 +73,7 @@ router.get("/get-act", async (req, res) => {
   res.status(200).json(sendAllActivities);
 });
 
+// create act -------------------------------------------------------
 router.post("/add-act", async (req, res) => {
   const body = req.body;
 
@@ -116,8 +114,7 @@ router.post("/add-act", async (req, res) => {
   res.status(200).send("Add activity seccess");
 });
 
-router.patch("/update-act-status", async (req, res) => {});
-
+// update act -------------------------------------------------------
 router.put("/update-act", async (req, res) => {
   const body = req.body;
 
@@ -161,14 +158,17 @@ router.put("/update-act", async (req, res) => {
   res.status(200).send("Update activity seccess");
 });
 
+// update status -------------------------------------------------------
+router.patch("/update-act-status", async (req, res) => {});
+
+// delete act -------------------------------------------------------
 router.delete("/delete-act", async (req, res) => {
   const { activityDelete } = req.body;
-  console.log("activityDelete => ", activityDelete);
 
   // Check checkMissingField from client request
   const [isBodyChecked, missingFields] = checkMissingField(
     DELETE_ACTIVITY_KEY,
-    activityDelete
+    {activityDelete}
   );
 
   if (!isBodyChecked) {
