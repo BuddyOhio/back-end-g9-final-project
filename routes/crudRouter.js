@@ -98,6 +98,12 @@ router.post("/add-act", async (req, res) => {
 
   actDate.setHours(hour);
   actDate.setMinutes(min);
+
+  const activityStatus = [];
+  // uncomplete
+  // completed
+
+  // เอา activityTime ออก
   const { activityTime, ...rest } = body;
 
   const addUserId = {
@@ -109,6 +115,8 @@ router.post("/add-act", async (req, res) => {
   await databaseClient.db().collection("users_activities").insertOne(addUserId);
   res.status(200).send("Add activity seccess");
 });
+
+router.patch("/update-act-status", async (req, res) => {});
 
 router.put("/update-act", async (req, res) => {
   const body = req.body;
@@ -156,57 +164,24 @@ router.put("/update-act", async (req, res) => {
 router.delete("/delete-act", async (req, res) => {
   const { activityDelete } = req.body;
   console.log("activityDelete => ", activityDelete);
-  
-  // // Check checkMissingField from client request
-  // const [isBodyChecked, missingFields] = checkMissingField(
-  //   DELETE_ACTIVITY_KEY,
-  //   activityDelete
-  // );
 
-  // if (!isBodyChecked) {
-  //   res.send(`Missing Fields: ${"".concat(missingFields)}`);
-  //   return;
-  // }
+  // Check checkMissingField from client request
+  const [isBodyChecked, missingFields] = checkMissingField(
+    DELETE_ACTIVITY_KEY,
+    activityDelete
+  );
 
-  // await databaseClient
-  //   .db()
-  //   .collection("users_activities")
-  //   .deleteOne({ _id: new ObjectId(activityDelete) });
+  if (!isBodyChecked) {
+    res.send(`Missing Fields: ${"".concat(missingFields)}`);
+    return;
+  }
+
+  await databaseClient
+    .db()
+    .collection("users_activities")
+    .deleteOne({ _id: new ObjectId(activityDelete) });
 
   res.status(200).send("Delete activity seccess");
 });
-
-// router.get("/get-activity", async (req, res) => {
-//   // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
-//   const activityId = req.query.activityId;
-//   // console.log("activityId => ", typeof activityId);
-
-//   const activity = await databaseClient
-//     .db()
-//     .collection("users_activities")
-//     .findOne({ _id: new ObjectId(activityId) }, { projection: { userId: 0 } });
-
-//   if (!activity) {
-//     // มันขึ้น 200 ที่ browser และรับ Array เปล่า
-//     res.status(400).send("No data");
-//     return;
-//   }
-
-//   const formatActivity = (activity) => {
-//     const { _id, ...rest } = activity;
-
-//     return {
-//       ...rest,
-//       // activityDateStr: format(activity.activityDate, "iii MMM dd yyyy"),
-//       // activityTimeStr: format(activity.activityDate, "HH:mm"),
-//       activityId: _id,
-//     };
-//   };
-
-//   const sendActivity = formatActivity(activity);
-
-//   res.status(200).json(sendActivity);
-//   // res.status(200).send("Hello");
-// });
 
 export default router;
