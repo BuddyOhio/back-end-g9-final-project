@@ -58,6 +58,7 @@ router.get("/", async (req, res) => {
     const sendAllActivities = allActivity.map((activity) => {
       const { _id, ...rest } = activity;
 
+      // object date to string date
       return {
         ...rest,
         activityDateStr: format(activity.activityDate, "iii MMM dd yyyy"),
@@ -129,7 +130,7 @@ router.post("/", async (req, res) => {
     actDate.setMinutes(min);
 
     const status = actDate > new Date() ? "up comming" : "completed";
-    console.log("status => ", status);
+    // console.log("status => ", status);
 
     // เอา activityTime ออก
     const { activityTime, ...rest } = body;
