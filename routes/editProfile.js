@@ -24,36 +24,57 @@ const isEmailAlreadyUsed = async (email) => {
 
 // GET user data
 router.get("/edit-profile", async (req, res) => {
-  const user = await databaseClient
-    .db()
-    .collection("users_profile")
-    .findOne(
-      { _id: new ObjectId("65b227e6d9ce065855e80f6b") },
-      { projection: { _id: 0, password: 0 } }
-    );
+  try {
+    // Check access token
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
 
-  if (!user) {
-    res.status(404).json({ error: "user not found" });
-    return;
+    // Get userId from Token
+    const userId = req.data_token.userId;
+
+    // Find user
+    const user = await databaseClient
+      .db()
+      .collection("users_profile")
+      .findOne(
+        { _id: new ObjectId(userId) },
+        { projection: { _id: 0, password: 0 } }
+      );
+
+    if (!user) {
+      res.status(404).json({ error: "user not found" });
+      return;
+    }
+    const sendUser = (user) => {
+      const { dob, ...data } = user;
+      return { ...data, dob: format(new Date(dob), "iii MMM dd yyyy") };
+    };
+
+    res.status(200).json(sendUser(user));
+  } catch (error) {
+    res.status(500).json({ error: { message: "Internal server error" } });
   }
-  const sendUser = (user) => {
-    const { dob, ...data } = user;
-    return { ...data, dob: format(new Date(dob), "iii MMM dd yyyy") };
-  };
-
-  res.status(200).json(sendUser(user));
 });
 
 // UPDATE user data
 router.put("/edit-profile", async (req, res) => {
-  const { fullName, dob, gender, weight, height } = req.body;
-
   try {
+    // Check access token
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
+
+    // Get userId from Token
+    const userId = req.data_token.userId;
+
+    const { fullName, dob, gender, weight, height } = req.body;
+
     const result = await databaseClient
       .db()
       .collection("users_profile")
       .updateOne(
-        { _id: new ObjectId("65b227e6d9ce065855e80f6b") }, // Assuming you are updating a specific user's profile
+        { _id: new ObjectId(userId) }, // Assuming you are updating a specific user's profile
         {
           $set: {
             fullName,
@@ -78,13 +99,24 @@ router.put("/edit-profile", async (req, res) => {
 
 // Change Email
 router.patch("/changeemail", async (req, res) => {
-  const { email } = req.body;
-
-  if (!isValidEmail(email)) {
-    return res.status(400).json({ error: "Invalid email!" });
-  }
-
   try {
+    // Check access token
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
+
+    // Get userId from Token
+    const userId = req.data_token.userId;
+
+    // Recive input email
+    const { email } = req.body;
+
+    // Check if email is valid
+    if (!isValidEmail(email)) {
+      return res.status(400).json({ error: "Invalid email!" });
+    }
+
+    // Check if email been used
     if (await isEmailAlreadyUsed(email)) {
       return res.status(400).json({ error: "Email is already in use!" });
     }
@@ -92,10 +124,7 @@ router.patch("/changeemail", async (req, res) => {
     const result = await databaseClient
       .db()
       .collection("users_profile")
-      .updateOne(
-        { _id: new ObjectId("65b227e6d9ce065855e80f6b") },
-        { $set: { email: email } }
-      );
+      .updateOne({ _id: new ObjectId(userId) }, { $set: { email: email } });
 
     if (result.modifiedCount === 1) {
       res.status(200).json({ message: "Email updated" });
@@ -111,11 +140,23 @@ router.patch("/changeemail", async (req, res) => {
 // <--Change Password-->
 router.patch("/changepassword", async (req, res) => {
   try {
+    // Check access token
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
+
+    // Get userId from Token
+    const userId = req.data_token.userId;
+
+    // Recive Passwords
     const { password, confirmPassword } = req.body;
+
+    // Check password
     if (password.length < 6) {
       return res.status(400).send({ error: { message: "Password too short" } });
     }
 
+    // Check is password === confirm password
     if (password !== confirmPassword) {
       return res
         .status(400)
@@ -130,7 +171,7 @@ router.patch("/changepassword", async (req, res) => {
       .db()
       .collection("users_profile")
       .updateOne(
-        { _id: new ObjectId("65b227e6d9ce065855e80f6b") },
+        { _id: new ObjectId(userId) },
         { $set: { password: hashedPassword } }
       );
 
