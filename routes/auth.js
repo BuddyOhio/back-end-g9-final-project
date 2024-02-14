@@ -29,11 +29,6 @@ const isValidEmail = (email) => {
 };
 
 // server router
-
-webServer.get("/", (req, res) => {
-  res.send("Hello World From G9-Final-Project");
-});
-
 webServer.get("/users", async (req, res) => {
   const users = await databaseClient
     .db()
@@ -94,6 +89,7 @@ webServer.post("/register", async (req, res) => {
     gender,
     weight: parseInt(weight),
     height: parseInt(height),
+    petName: "whisky",
   };
 
   // save ลง database (return เป็น Promise)
@@ -135,21 +131,21 @@ webServer.post("/login", async (req, res) => {
   }
 
   const { _id, email, password, ...other } = user;
-  const token = createJwt(_id);
+  const token = createJwt(_id, email);
   const sendData = { _id, ...other };
 
   return res
     .cookie("access_token", token, {
-      httpOnly: true,
+      httpOnly: process.env.NODE_ENV === "production" ? true : false,
       expires: dayjs().add(1, "days").toDate(),
     })
     .status(200)
     .json(sendData);
 });
 
-const createJwt = (id) => {
+const createJwt = (id, email) => {
   const jwtSecretKey = process.env.JWT_SECRET_KEY;
-  const token = jwt.sign({ id }, jwtSecretKey, { expiresIn: "1d" });
+  const token = jwt.sign({ id, email }, jwtSecretKey, { expiresIn: "1d" });
   return token;
 };
 
