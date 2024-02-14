@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import databaseClient from "./services/database.mjs";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
+import jwt from "jsonwebtoken";
 import auth from "./routes/auth.js";
 import crudRouter from "./routes/crudRouter.js";
 import editProfile from "./routes/editProfile.js";
@@ -27,24 +27,26 @@ webServer.use(
 );
 webServer.use(cookieParser());
 
-const authorization = (req, res, next) => {
+
+webServer.use(auth)
+webServer.use("/api",crudRouter);
+webServer.use(editProfile);
+
+export const authorization = (req, res, next) => {
   const token = req.cookies.access_token;
   if (!token) {
+    console.log("authorization middleware: unknown token");
     return res.sendStatus(401);
   }
   try {
     const data = jwt.verify(token, process.env.JWT_SECRET_KEY);
     req.userId = data.id;
     return next();
-  } catch {
+  } catch (e) {
+    console.log("authorization middleware: invalid user", e);
     return res.sendStatus(401);
   }
 };
-
-
-webServer.use(auth)
-webServer.use("/api",crudRouter);
-webServer.use(editProfile);
 
 // initilize web server
 const currentServer = webServer.listen(PORT, HOSTNAME, () => {
