@@ -2,13 +2,11 @@ import express from "express";
 import databaseClient from "../services/database.mjs";
 import { ObjectId } from "mongodb";
 import { format } from "date-fns";
-import jwt from "jsonwebtoken";
-import "dotenv/config";
 import { checkMissingField } from "../utils/requestUtils.js";
 
 const router = express.Router();
 
-// CHECK DATA
+// CHECK DATA INPUT
 const ADD_ACTIVITY_KEY = [
   "activityName",
   "activityDesc",
@@ -28,160 +26,273 @@ const EDIT_ACTIVITY_KEY = [
   "activityDuration",
   "activityID",
 ];
-const DELETE_ACTIVITY_KEY = ["activityDelete"];
+const EDIT_STATUS_KEY = ["activityIdStatus"];
+const DELETE_ACTIVITY_KEY = ["activityIdDelete"];
 
 // get act -------------------------------------------------------
-router.get("/get-act", async (req, res) => {
-  // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
-  // const token = req.cookies.abcde;
-  // if (!token) return res.status(401).json("Not logged in!");
-  // console.log("token => ", token);
+router.get("/", async (req, res) => {
+  try {
+    // Check access token
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
 
-  // if (!token) return res.redirect("/login")
+    // Get userId from Token
+    const userId = req.data_token.userId;
 
-  // const jwtSecretKey = process.env.JWT_SECRET_KEY;
-  // const decodedToken = jwt.verify(token, jwtSecretKey);
+    // Find data by userId
+    const allActivity = await databaseClient
+      .db()
+      .collection("users_activities")
+      .find({ userId: new ObjectId(userId) }, { projection: { userId: 0 } })
+      .toArray();
 
-  // console.log("decodedToken => ", decodedToken);
+    // Check data
+    if (!allActivity) {
+      // มันขึ้น 200 ที่ browser และรับ Array เปล่า ********************
+      res.status(400).send("No activity in database");
+      return;
+    }
 
-  const allActivity = await databaseClient
-    .db()
-    .collection("users_activities")
-    .find(
-      { userId: new ObjectId("65b227e6d9ce065855e80f6b") },
-      { projection: { userId: 0 } }
-    )
-    .toArray();
+    // Format date before response to Client
+    const sendAllActivities = allActivity.map((activity) => {
+      const { _id, ...rest } = activity;
 
-  if (!allActivity) {
-    // มันขึ้น 200 ที่ browser และรับ Array เปล่า
-    res.status(400).send("No activity in database");
-    return;
+      return {
+        ...rest,
+        activityDateStr: format(activity.activityDate, "iii MMM dd yyyy"),
+        activityTimeStr: format(activity.activityDate, "HH:mm"),
+        activityId: _id,
+      };
+    });
+
+    // Response
+    res.status(200).json(sendAllActivities);
+  } catch (error) {
+    // HTTP response status code: (500 Internal Server Error) server error response code indicates that the server encountered an unexpected condition that prevented it from fulfilling the request.
+    return res.status(500).json(error.message || "Internal Server Error");
   }
-
-  const sendAllActivities = allActivity.map((activity) => {
-    const { _id, ...rest } = activity;
-
-    return {
-      ...rest,
-      activityDateStr: format(activity.activityDate, "iii MMM dd yyyy"),
-      activityTimeStr: format(activity.activityDate, "HH:mm"),
-      activityId: _id,
-    };
-  });
-
-  res.status(200).json(sendAllActivities);
 });
 
 // create act -------------------------------------------------------
-router.post("/add-act", async (req, res) => {
-  const body = req.body;
+router.post("/", async (req, res) => {
+  try {
+    // Check token access
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
+    // Get userId from Token
+    const userId = req.data_token.userId;
+    // Get input data from Client
+    const body = req.body;
 
-  // Check checkMissingField from client request
-  const [isBodyChecked, missingFields] = checkMissingField(
-    ADD_ACTIVITY_KEY,
-    body
-  );
+    // Check missingField from client request
+    const [isBodyChecked, missingFields] = checkMissingField(
+      ADD_ACTIVITY_KEY,
+      body
+    );
+    if (!isBodyChecked) {
+      res.send(`Missing Fields: ${"".concat(missingFields)}`);
+      return;
+    }
 
-  if (!isBodyChecked) {
-    res.send(`Missing Fields: ${"".concat(missingFields)}`);
-    return;
+    // Validate each filed
+    // HTTP response status code: (400 Bad Request) the server cannot or will not process the request due to something that is perceived to be a client error
+    if (body.activityName.length > 20) {
+      res
+        .status(400)
+        .send("Name of activity should be less than 15 characters long.");
+      return;
+    }
+    if (body.activityDesc.length > 115) {
+      res
+        .status(400)
+        .send(
+          "Description of activity should be less than 15 characters long."
+        );
+      return;
+    }
+    if (body.activityTypeOther.length > 15) {
+      res
+        .status(400)
+        .send("Type of activity should be less than 10 characters long.");
+      return;
+    }
+
+    // Format Date type string to type date
+    const actDate = new Date(body.activityDate);
+    const actTime = new Date(body.activityTime);
+    const hour = actTime.getHours();
+    const min = actTime.getMinutes();
+
+    actDate.setHours(hour);
+    actDate.setMinutes(min);
+
+    const status = actDate > new Date() ? "up comming" : "completed";
+    console.log("status => ", status);
+
+    // เอา activityTime ออก
+    const { activityTime, ...rest } = body;
+
+    const addUserId = {
+      ...rest,
+      activityDate: actDate,
+      userId: new ObjectId(userId),
+      activityStatus: status,
+    };
+
+    await databaseClient
+      .db()
+      .collection("users_activities")
+      .insertOne(addUserId);
+    res.status(200).send("Add activity seccess");
+  } catch (error) {
+    return res.status(500).json(error.message || "Internal Server Error");
   }
-
-  // Format Date type string to type date
-  const actDate = new Date(body.activityDate);
-  const actTime = new Date(body.activityTime);
-  const hour = actTime.getHours();
-  const min = actTime.getMinutes();
-
-  actDate.setHours(hour);
-  actDate.setMinutes(min);
-
-  const activityStatus = [];
-  // uncomplete
-  // completed
-
-  // เอา activityTime ออก
-  const { activityTime, ...rest } = body;
-
-  const addUserId = {
-    ...rest,
-    activityDate: actDate,
-    userId: new ObjectId("65b227e6d9ce065855e80f6b"),
-  };
-
-  await databaseClient.db().collection("users_activities").insertOne(addUserId);
-  res.status(200).send("Add activity seccess");
 });
 
 // update act -------------------------------------------------------
-router.put("/update-act", async (req, res) => {
-  const body = req.body;
+router.put("/", async (req, res) => {
+  try {
+    // Check token access
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
+    // Get input data from Client
+    const body = req.body;
 
-  // Check checkMissingField from client request
-  const [isBodyChecked, missingFields] = checkMissingField(
-    EDIT_ACTIVITY_KEY,
-    body
-  );
+    // Check missingField from client request
+    const [isBodyChecked, missingFields] = checkMissingField(
+      EDIT_ACTIVITY_KEY,
+      body
+    );
 
-  if (!isBodyChecked) {
-    res.send(`Missing Fields: ${"".concat(missingFields)}`);
-    return;
+    if (!isBodyChecked) {
+      res.send(`Missing Fields: ${"".concat(missingFields)}`);
+      return;
+    }
+
+    // Validate each filed
+    if (body.activityName.length > 20) {
+      res
+        .status(400)
+        .send("Name of activity should be less than 20 characters long.");
+      return;
+    }
+    if (body.activityDesc.length > 115) {
+      res
+        .status(400)
+        .send(
+          "Description of activity should be less than 115 characters long."
+        );
+      return;
+    }
+    if (body.activityTypeOther.length > 15) {
+      res
+        .status(400)
+        .send("Type of activity should be less than 15 characters long.");
+      return;
+    }
+
+    // Format Date type:"string" to type:date
+    const actDate = new Date(body.activityDate);
+    const actTime = new Date(body.activityTime);
+    const hour = actTime.getHours();
+    const min = actTime.getMinutes();
+
+    actDate.setHours(hour);
+    actDate.setMinutes(min);
+
+    // แยก activityTime, activityID ออกจาก object
+    const { activityID, activityTime, ...rest } = body;
+
+    const addFotmatDate = {
+      ...rest,
+      activityDate: actDate,
+    };
+
+    // Database
+    await databaseClient
+      .db()
+      .collection("users_activities")
+      .updateOne({ _id: new ObjectId(activityID) }, { $set: addFotmatDate });
+
+    // Response
+    res.status(200).send("Update activity seccess");
+  } catch (error) {
+    return res.status(500).json(error.message || "Internal Server Error");
   }
-
-  // Format Date string to date
-  const actDate = new Date(body.activityDate);
-  const actTime = new Date(body.activityTime);
-  const hour = actTime.getHours();
-  const min = actTime.getMinutes();
-
-  actDate.setHours(hour);
-  actDate.setMinutes(min);
-  const { activityID, activityTime, ...rest } = body;
-
-  // const addUserId = {
-  //   ...rest,
-  //   activityDate: actDate,
-  //   userId: new ObjectId("65b227e6d9ce065855e80f6b"),
-  // };
-
-  const addFotmatDate = {
-    ...rest,
-    activityDate: actDate,
-  };
-
-  // console.log(addFotmatDate);
-  await databaseClient
-    .db()
-    .collection("users_activities")
-    .updateOne({ _id: new ObjectId(activityID) }, { $set: addFotmatDate });
-  res.status(200).send("Update activity seccess");
 });
 
 // update status -------------------------------------------------------
-router.patch("/update-act-status", async (req, res) => {});
+router.patch("/", async (req, res) => {
+  try {
+    // Check token access
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
+
+    // Get input data from Client
+    const body = req.body;
+
+    // Check missingField from client request
+    const [isBodyChecked, missingFields] = checkMissingField(
+      EDIT_STATUS_KEY,
+      body
+    );
+    if (!isBodyChecked) {
+      res.send(`Missing Fields: ${"".concat(missingFields)}`);
+      return;
+    }
+
+    // Database
+    await databaseClient
+      .db()
+      .collection("users_activities")
+      .updateOne(
+        { _id: new ObjectId(body.activityIdStatus) },
+        { $set: { activityStatus: "completed" } }
+      );
+
+    // Response
+    res.status(200).send("Update activity status seccess");
+  } catch (error) {
+    return res.status(500).json(error.message || "Internal Server Error");
+  }
+});
 
 // delete act -------------------------------------------------------
-router.delete("/delete-act", async (req, res) => {
-  const { activityDelete } = req.body;
+router.delete("/", async (req, res) => {
+  try {
+    // Check token access
+    if (!req.data_token) {
+      res.status(401).send("You're not login");
+    }
 
-  // Check checkMissingField from client request
-  const [isBodyChecked, missingFields] = checkMissingField(
-    DELETE_ACTIVITY_KEY,
-    {activityDelete}
-  );
+    // Get input data from Client
+    const body = req.body;
 
-  if (!isBodyChecked) {
-    res.send(`Missing Fields: ${"".concat(missingFields)}`);
-    return;
+    // Check MissingField from client request
+    const [isBodyChecked, missingFields] = checkMissingField(
+      DELETE_ACTIVITY_KEY,
+      body
+    );
+    if (!isBodyChecked) {
+      res.send(`Missing Fields: ${"".concat(missingFields)}`);
+      return;
+    }
+
+    // Database
+    await databaseClient
+      .db()
+      .collection("users_activities")
+      .deleteOne({ _id: new ObjectId(body.activityIdDelete) });
+
+    // Response
+    res.status(200).send("Delete activity seccess");
+  } catch (error) {
+    return res.status(500).json(error.message || "Internal Server Error");
   }
-
-  await databaseClient
-    .db()
-    .collection("users_activities")
-    .deleteOne({ _id: new ObjectId(activityDelete) });
-
-  res.status(200).send("Delete activity seccess");
 });
 
 export default router;
