@@ -7,6 +7,7 @@ import cookieParser from "cookie-parser";
 import auth from "./routes/auth.js";
 import crudRouter from "./routes/crudRouter.js";
 import editProfile from "./routes/editProfile.js";
+import jwt from "jsonwebtoken";
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
@@ -27,24 +28,26 @@ webServer.use(
 );
 webServer.use(cookieParser());
 
+// Middleware for check cookies & token
 const authorization = (req, res, next) => {
   const token = req.cookies.access_token;
   if (!token) {
     return res.sendStatus(401);
   }
+
   try {
     const data = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.userId = data.id;
+    req.data_token = { userId: data.id, username: data.email };
     return next();
-  } catch {
+  } catch (error) {
+    console.log(error);
     return res.sendStatus(401);
   }
 };
 
-
-webServer.use(auth)
-webServer.use("/api",crudRouter);
-webServer.use(editProfile);
+webServer.use(auth);
+webServer.use("/api/activity", authorization, crudRouter);
+webServer.use(authorization, editProfile);
 
 // initilize web server
 const currentServer = webServer.listen(PORT, HOSTNAME, () => {
