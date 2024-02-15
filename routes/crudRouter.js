@@ -224,32 +224,23 @@ router.put("/", async (req, res) => {
 });
 
 // update status -------------------------------------------------------
-router.patch("/", async (req, res) => {
+router.patch("/:actId", async (req, res) => {
   try {
     // Check token access
     if (!req.data_token) {
       res.status(401).send("You're not login");
     }
 
-    // Get input data from Client
-    const body = req.body;
-
-    // Check missingField from client request
-    const [isBodyChecked, missingFields] = checkMissingField(
-      EDIT_STATUS_KEY,
-      body
-    );
-    if (!isBodyChecked) {
-      res.send(`Missing Fields: ${"".concat(missingFields)}`);
-      return;
-    }
+    // Get activity ID from Client
+    const activityId = req.params.actId;
+    // console.log("activityId => ", activityId);
 
     // Database
     await databaseClient
       .db()
       .collection("users_activities")
       .updateOne(
-        { _id: new ObjectId(body.activityIdStatus) },
+        { _id: new ObjectId(activityId) },
         { $set: { activityStatus: "completed" } }
       );
 
@@ -270,7 +261,7 @@ router.delete("/:actId", async (req, res) => {
 
     // Get activity ID from Client
     const activityId = req.params.actId;
-    console.log("activityId => ", activityId);
+    // console.log("activityId => ", activityId);
 
     // Database
     await databaseClient

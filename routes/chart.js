@@ -29,6 +29,7 @@ router.get("/get-dashboard-activities", async (req, res) => {
     .find(
       {
         userId: new ObjectId(userId),
+        activityStatus: "completed",
       },
       { projection: { userId: 0 } }
     )
