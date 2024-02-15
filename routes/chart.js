@@ -15,7 +15,7 @@ router.get("/get-dashboard-activities", async (req, res) => {
     .collection("users_activities")
     .find(
       {
-        userId: new ObjectId("65b227e6d9ce065855e80f6b"),
+        userId: new ObjectId("65cc2b3d2a86eda606a997af"),
       },
       { projection: { userId: 0 } }
     )
