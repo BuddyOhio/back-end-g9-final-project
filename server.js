@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import auth from "./routes/auth.js";
 import crudRouter from "./routes/crudRouter.js";
 import editProfile from "./routes/editProfile.js";
+import path from "path";
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
@@ -18,6 +19,10 @@ dotenv.config();
 // middle ware
 const webServer = express();
 
+webServer.use(
+  "/uploads/images",
+  express.static(path.join("uploads", "images"))
+);
 webServer.use(express.json());
 webServer.use(express.urlencoded({ extended: true }));
 webServer.use(
@@ -27,7 +32,6 @@ webServer.use(
   })
 );
 webServer.use(cookieParser());
-
 
 // Middleware for check cookies & token
 const authorization = (req, res, next) => {
