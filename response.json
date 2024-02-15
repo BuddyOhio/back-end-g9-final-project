@@ -1,0 +1,53 @@
+{
+  "dailyActivities": [
+    {
+      "type": "Run",
+      "count": 2,
+      "time": 120
+    },
+    {
+      "type": "Bicycle",
+      "count": 1,
+      "time": 30
+    },
+    {
+      "type": "Swim",
+      "count": 2,
+      "time": 40
+    }
+  ],
+  "weeklyActivities": [
+    {
+      "type": "Run",
+      "count": 6,
+      "time": 320
+    },
+    {
+      "type": "Bicycle",
+      "count": 4,
+      "time": 130
+    },
+    {
+      "type": "Swim",
+      "count": 8,
+      "time": 200
+    }
+  ],
+  "totalActivities": [
+    {
+      "type": "Run",
+      "count": 16,
+      "time": 1320
+    },
+    {
+      "type": "Bicycle",
+      "count": 14,
+      "time": 1130
+    },
+    {
+      "type": "Swim",
+      "count": 18,
+      "time": 1200
+    }
+  ]
+}

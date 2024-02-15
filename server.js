@@ -1,13 +1,13 @@
 import express from "express";
 import dotenv from "dotenv";
 import databaseClient from "./services/database.mjs";
+import chart from "./routes/chart.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import jwt from "jsonwebtoken";
 import auth from "./routes/auth.js";
 import crudRouter from "./routes/crudRouter.js";
 import editProfile from "./routes/editProfile.js";
-
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
@@ -46,10 +46,10 @@ const authorization = (req, res, next) => {
   }
 };
 
-
 webServer.use(auth);
 webServer.use("/api/activity", authorization, crudRouter);
 webServer.use(authorization, editProfile);
+webServer.use(chart);
 
 // initilize web server
 const currentServer = webServer.listen(PORT, HOSTNAME, () => {
