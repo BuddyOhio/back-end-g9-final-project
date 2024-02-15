@@ -8,10 +8,10 @@ export const authorization = (req, res, next) => {
   }
   try {
     const data = jwt.verify(token, process.env.JWT_SECRET_KEY);
-    req.userId = data.id;
+    req.data_token = { userId: data.id, username: data.email };
     return next();
-  } catch (e) {
-    console.log("authorization middleware: invalid user", e);
+  } catch (error) {
+    console.log("authorization middleware: invalid user", error);
     return res.sendStatus(401);
   }
 };

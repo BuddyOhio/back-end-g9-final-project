@@ -2,8 +2,9 @@ import databaseClient from "../services/database.mjs";
 import express from "express";
 import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
-import mongoose, { Schema, Types } from "mongoose";
+import { Schema, Types } from "mongoose";
 import dayjs from "dayjs";
+import { authorization } from "../services/middlewares.mjs";
 
 const webServer = express.Router();
 // สร้าง database schema
@@ -99,7 +100,6 @@ webServer.post("/register", async (req, res) => {
 
 webServer.post("/login", async (req, res) => {
   //  retrive email , password
-
   const { email: inputEmail, password: inputPassword } = req.body;
   if (!isValidEmail(inputEmail)) {
     return res.status(400).send({ error: { message: "invalid email" } });
@@ -149,14 +149,21 @@ const createJwt = (id, email) => {
   return token;
 };
 
-// webServer.get("/me", async (req, res) => {
-//   const user = await databaseClient
-//     .db()
-//     .collection("users_profile")
-//     .findOne({ _id: new Types.ObjectId(req.userId) });
-//   // const { email, password, ...other } = user;
-//   return res.status(200).json(other);
-// });
+webServer.get("/me", authorization, async (req, res) => {
+  if (!req.data_token) {
+    return res.status(401).json({ error: "unauthorized" });
+  }
+  const user = await databaseClient
+    .db()
+    .collection("users_profile")
+    .findOne({ _id: new Types.ObjectId(req.data_token.userId) });
+  const { email, password, ...other } = user;
+
+  if (!user) {
+    return res.status(404).json({ error: "user not found" });
+  }
+  return res.status(200).json(other);
+});
 
 webServer.get("/logout", (req, res) => {
   return res
