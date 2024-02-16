@@ -27,14 +27,14 @@ router.get("/date/:date", async (req, res) => {
     const dateBefore = new Date(dateUTCAfter);
     dateBefore.setDate(dateUTCAfter.getDate() + 1);
 
-    console.log("dateByUser => ", dateByUser);
-    console.log("dateByUser type => ", typeof dateByUser);
-    console.log("dateAfter => ", dateAfter);
-    console.log("dateAfter type => ", typeof dateAfter);
-    console.log("dateUTCAfter => ", dateUTCAfter);
-    console.log("dateUTCAfter type => ", typeof dateUTCAfter);
-    console.log("dateBefore => ", dateBefore);
-    console.log("dateBefore type => ", typeof dateBefore);
+    // console.log("dateByUser => ", dateByUser);
+    // console.log("dateByUser type => ", typeof dateByUser);
+    // console.log("dateAfter => ", dateAfter);
+    // console.log("dateAfter type => ", typeof dateAfter);
+    // console.log("dateUTCAfter => ", dateUTCAfter);
+    // console.log("dateUTCAfter type => ", typeof dateUTCAfter);
+    // console.log("dateBefore => ", dateBefore);
+    // console.log("dateBefore type => ", typeof dateBefore);
 
     // Database
     const data = await databaseClient
@@ -66,7 +66,7 @@ router.get("/date/:date", async (req, res) => {
       };
     });
 
-    console.log("sendActivities => ", sendActivities);
+    // console.log("sendActivities => ", sendActivities);
 
     // Response
     res.status(200).json(sendActivities);
