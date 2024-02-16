@@ -26,7 +26,7 @@ webServer.use(express.json());
 webServer.use(express.urlencoded({ extended: true }));
 webServer.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://doggo-project-hwyztjwvg-ohios-projects.vercel.app/",
     credentials: true,
   })
 );
@@ -46,7 +46,6 @@ webServer.use("/api/calendar", authorization, calendar);
 webServer.use(authorization, chart);
 
 const currentServer = webServer.listen(PORT, () => {
-
   console.log(
     `DATABASE IS CONNECTED: NAME => ${databaseClient.db().databaseName}`
   );
