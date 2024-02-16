@@ -4,6 +4,7 @@ import databaseClient from "./services/database.mjs";
 import chart from "./routes/chart.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import pet from "./routes/pet.js";
 import jwt from "jsonwebtoken";
 import auth from "./routes/auth.js";
 import crudRouter from "./routes/crudRouter.js";
@@ -16,13 +17,9 @@ const PORT = process.env.SERVER_PORT || 3000;
 // setting initial configuration for upload file, web server (express), and cors
 dotenv.config();
 
-// middle ware
 const webServer = express();
 
-webServer.use(
-  "/uploads/images",
-  express.static(path.join("uploads", "images"))
-);
+// middle ware
 webServer.use(express.json());
 webServer.use(express.urlencoded({ extended: true }));
 webServer.use(
@@ -32,6 +29,10 @@ webServer.use(
   })
 );
 webServer.use(cookieParser());
+webServer.use(
+  "/uploads/images",
+  express.static(path.join("uploads", "images"))
+);
 
 // Middleware for check cookies & token
 const authorization = (req, res, next) => {
@@ -50,12 +51,14 @@ const authorization = (req, res, next) => {
   }
 };
 
+// Router ------------------------------------------------------------
 webServer.use(auth);
 webServer.use("/api/activity", authorization, crudRouter);
 webServer.use(authorization, editProfile);
+webServer.use("/api/pet", authorization, pet);
 webServer.use(chart);
 
-// initilize web server
+// initilize web server ----------------------------------------------
 const currentServer = webServer.listen(PORT, HOSTNAME, () => {
   console.log(
     `DATABASE IS CONNECTED: NAME => ${databaseClient.db().databaseName}`
