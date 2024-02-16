@@ -12,6 +12,8 @@ router.get("/date/:date", async (req, res) => {
       res.status(401).send("You're not login");
     }
 
+    const userId = req.data_token;
+
     // Get dateByUser from Client
     const dateByUser = req.params.date;
     const dateAfter = new Date(dateByUser);
@@ -30,6 +32,7 @@ router.get("/date/:date", async (req, res) => {
       .db()
       .collection("users_activities")
       .find({
+        userId: userId,
         activityDate: {
           $gte: dateAfter,
           $lt: dateBefore,
