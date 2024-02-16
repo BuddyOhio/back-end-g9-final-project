@@ -19,13 +19,20 @@ router.get("/date/:date", async (req, res) => {
     // Get dateByUser from Client
     const dateByUser = req.params.date;
     const dateAfter = new Date(dateByUser);
-    const dateBefore = new Date(dateAfter);
+    console.log("dateAfter => ", dateAfter);
+    console.log("dateAfter type => ", typeof dateAfter);
+    
+    let dateUTCAfter = dateAfter;
+    if (process.env.NODE_ENV === "production") {
+      dateUTCAfter = addHours(dateAfter, -7);
+    }
+    const dateBefore = new Date(dateUTCAfter);
     dateBefore.setDate(dateAfter.getDate() + 1);
 
     console.log("dateByUser => ", dateByUser);
     console.log("dateByUser type => ", typeof dateByUser);
-    console.log("dateAfter => ", dateAfter);
-    console.log("dateAfter type => ", typeof dateAfter);
+    console.log("dateUTCAfter => ", dateUTCAfter);
+    console.log("dateUTCAfter type => ", typeof dateUTCAfter);
     console.log("dateBefore => ", dateBefore);
     console.log("dateBefore type => ", typeof dateBefore);
 
@@ -36,7 +43,7 @@ router.get("/date/:date", async (req, res) => {
       .find({
         userId: new ObjectId(userId),
         activityDate: {
-          $gte: dateAfter,
+          $gte: dateUTCAfter,
           $lt: dateBefore,
         },
       })
