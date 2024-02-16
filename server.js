@@ -13,7 +13,7 @@ import calendar from "./routes/calendar.js";
 import { authorization } from "./services/middlewares.mjs";
 import path from "path";
 
-const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
+// const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
 
 // setting initial configuration for upload file, web server (express), and cors
@@ -45,12 +45,12 @@ webServer.use("/api/pet", authorization, pet);
 webServer.use("/api/calendar", authorization, calendar);
 webServer.use(authorization, chart);
 
-// initilize web server ----------------------------------------------
-const currentServer = webServer.listen(PORT, HOSTNAME, () => {
+const currentServer = webServer.listen(PORT, () => {
+
   console.log(
     `DATABASE IS CONNECTED: NAME => ${databaseClient.db().databaseName}`
   );
-  console.log(`SERVER IS ONLINE => http://${HOSTNAME}:${PORT}`);
+  // console.log(`SERVER IS ONLINE => http://${HOSTNAME}:${PORT}`);
 });
 
 const cleanup = () => {
