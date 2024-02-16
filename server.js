@@ -26,7 +26,7 @@ webServer.use(express.json());
 webServer.use(express.urlencoded({ extended: true }));
 webServer.use(
   cors({
-    origin: "https://doggo-project-hwyztjwvg-ohios-projects.vercel.app/",
+    origin: true,
     credentials: true,
   })
 );
