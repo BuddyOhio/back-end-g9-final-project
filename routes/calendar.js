@@ -21,13 +21,13 @@ router.get("/date/:date", async (req, res) => {
     const dateAfter = new Date(dateByUser);
     console.log("dateAfter => ", dateAfter);
     console.log("dateAfter type => ", typeof dateAfter);
-    
+
     let dateUTCAfter = dateAfter;
     if (process.env.NODE_ENV === "production") {
       dateUTCAfter = addHours(dateAfter, -7);
     }
     const dateBefore = new Date(dateUTCAfter);
-    dateBefore.setDate(dateAfter.getDate() + 1);
+    dateBefore.setDate(dateUTCAfter.getDate() + 1);
 
     console.log("dateByUser => ", dateByUser);
     console.log("dateByUser type => ", typeof dateByUser);
