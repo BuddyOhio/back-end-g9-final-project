@@ -169,7 +169,7 @@ webServer.get("/me", authorization, async (req, res) => {
 
 webServer.get("/logout", (req, res) => {
   return res
-    .clearCookie("access_token")
+    .clearCookie("access_token", { sameSite: "none", secure: true })
     .status(200)
     .json({ messgae: "Successfully logged out" });
 });
