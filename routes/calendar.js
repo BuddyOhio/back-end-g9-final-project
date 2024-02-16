@@ -53,8 +53,8 @@ router.get("/date/:date", async (req, res) => {
       // object date to string date
       return {
         ...rest,
-        activityDateStr: format(activity.activityDate, "iii MMM dd yyyy"),
-        activityTimeStr: format(activity.activityDate, "HH:mm"),
+        activityDateStr: format(currDate, "iii MMM dd yyyy"),
+        activityTimeStr: format(currDate, "HH:mm"),
         activityId: _id,
       };
     });
