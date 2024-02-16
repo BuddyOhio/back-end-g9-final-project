@@ -1,7 +1,7 @@
 import express from "express";
 import databaseClient from "../services/database.mjs";
 import { ObjectId } from "mongodb";
-import { format } from "date-fns";
+import { addHours, format } from "date-fns";
 import { checkMissingField } from "../utils/requestUtils.js";
 
 const router = express.Router();
@@ -56,14 +56,25 @@ router.get("/", async (req, res) => {
     const sendAllActivities = allActivity.map((activity) => {
       const { _id, ...rest } = activity;
 
+      // console.log("activityDate => ", activity.activityDate);
+
+      let currDate = activity.activityDate;
+      if (process.env.NODE_ENV === "production") {
+        currDate = addHours(activity.activityDate, 7);
+      }
+      // console.log("currDate => ", currDate);
+      // console.log("currDate format => ", format(currDate, "iii MMM dd yyyy"));
+      // console.log("currDate format => ", format(currDate, "HH:mm"));
       // object date to string date
       return {
         ...rest,
-        activityDateStr: format(activity.activityDate, "iii MMM dd yyyy"),
-        activityTimeStr: format(activity.activityDate, "HH:mm"),
+        activityDateStr: format(currDate, "iii MMM dd yyyy"),
+        activityTimeStr: format(currDate, "HH:mm"),
         activityId: _id,
       };
     });
+
+    // console.log("sendAllActivities = > ", sendAllActivities);
 
     // Response
     res.status(200).json(sendAllActivities);
