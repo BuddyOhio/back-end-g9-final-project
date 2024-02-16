@@ -138,6 +138,7 @@ webServer.post("/login", async (req, res) => {
     .cookie("access_token", token, {
       httpOnly: process.env.NODE_ENV === "production" ? true : false,
       expires: dayjs().add(1, "days").toDate(),
+      sameSite: "none"
     })
     .status(200)
     .json(sendData);
