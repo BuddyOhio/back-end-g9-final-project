@@ -1,6 +1,7 @@
 import express from "express";
 import databaseClient from "../services/database.mjs";
 import { format } from "date-fns";
+import { ObjectId } from "mongodb";
 // import { ObjectId } from "mongodb";
 
 const router = express.Router();
@@ -12,7 +13,8 @@ router.get("/date/:date", async (req, res) => {
       res.status(401).send("You're not login");
     }
 
-    const userId = req.data_token;
+    const userId = req.data_token.userId;
+    // console.log("userId => ", userId);
 
     // Get dateByUser from Client
     const dateByUser = req.params.date;
@@ -32,7 +34,7 @@ router.get("/date/:date", async (req, res) => {
       .db()
       .collection("users_activities")
       .find({
-        userId: userId,
+        userId: new ObjectId(userId),
         activityDate: {
           $gte: dateAfter,
           $lt: dateBefore,
