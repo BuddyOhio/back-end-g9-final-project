@@ -9,6 +9,7 @@ import jwt from "jsonwebtoken";
 import auth from "./routes/auth.js";
 import crudRouter from "./routes/crudRouter.js";
 import editProfile from "./routes/editProfile.js";
+import path from "path";
 
 const HOSTNAME = process.env.SERVER_IP || "127.0.0.1";
 const PORT = process.env.SERVER_PORT || 3000;
@@ -28,7 +29,10 @@ webServer.use(
   })
 );
 webServer.use(cookieParser());
-
+webServer.use(
+  "/uploads/images",
+  express.static(path.join("uploads", "images"))
+);
 
 // Middleware for check cookies & token
 const authorization = (req, res, next) => {
