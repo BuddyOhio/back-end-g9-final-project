@@ -46,6 +46,10 @@ router.get("/date/:date", async (req, res) => {
     const sendActivities = data.map((activity) => {
       const { _id, userId, ...rest } = activity;
 
+      let currDate = activity.activityDate;
+      if (process.env.NODE_ENV === "production") {
+        currDate = addHours(activity.activityDate, 7);
+      }
       // object date to string date
       return {
         ...rest,
