@@ -2,34 +2,46 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import databaseClient from "../services/database.mjs";
 import { format } from "date-fns";
-import { getMonday, addDays, addMinutes, getDayName, getWeekDays } from "../utils/date-utils.js";
+import {
+  getMonday,
+  addDays,
+  addMinutes,
+  getDayName,
+  getWeekDays,
+} from "../utils/date-utils.js";
 
 const router = express.Router();
 const locale = "en-us";
 
 router.get("/get-dashboard-activities", async (req, res) => {
-  // ต้องแกะ cookie หา Token แล้วแกะ Token หา userId
+  // Check access token
+  if (!req.data_token) {
+    res.status(401).send("You're not login");
+  }
+
+  // Get userId from Token
+  const userId = req.data_token.userId;
+
   // Get data from database
   var allActivities = await databaseClient
     .db()
     .collection("users_activities")
     .find(
       {
-        userId: new ObjectId("65cc2b3d2a86eda606a997af"),
+        userId: new ObjectId(userId),
+        activityStatus: "completed",
       },
       { projection: { userId: 0 } }
     )
     .toArray();
 
-    // Add dayOfWeek to all the activities in the array
-    allActivities = allActivities.map((activity) => 
-    {
-      return {
-        ...activity, 
-        dayOfWeek: getDayName(activity.activityDate, locale)
-      }
-    }
-  );
+  // Add dayOfWeek to all the activities in the array
+  allActivities = allActivities.map((activity) => {
+    return {
+      ...activity,
+      dayOfWeek: getDayName(activity.activityDate, locale),
+    };
+  });
 
   if (!allActivities) {
     // มันขึ้น 200 ที่ browser และรับ Array เปล่า
@@ -62,15 +74,17 @@ router.get("/get-dashboard-activities", async (req, res) => {
     donutDailyActivities: formatActivitiesForDonutChart(dailyActivities),
     donutWeeklyActivities: formatActivitiesForDonutChart(weeklyActivities),
     donutAllActivities: formatActivitiesForDonutChart(allActivities),
-    columnsWeeklyActivities: formatActivitiesForColumnsChart(weeklyActivities)
+    columnsWeeklyActivities: formatActivitiesForColumnsChart(weeklyActivities),
   };
 
   res.status(200).json(response);
 });
 
 function formatActivitiesForDonutChart(activities) {
-  return activities && Object.values(
-/*
+  return (
+    activities &&
+    Object.values(
+      /*
     SELECT
       ActivityType as type,
       COUNT(*) as count,
@@ -80,57 +94,72 @@ function formatActivitiesForDonutChart(activities) {
       ActivityType
 */
 
-    activities.reduce((result, { activityType, activityDuration}) => {
-      // Create new group
-      if (!result[activityType])
-        result[activityType] = {
-          type: activityType,
-          count: 0,
-          time: 0,
-        };
+      activities.reduce((result, { activityType, activityDuration }) => {
+        // Create new group
+        if (!result[activityType])
+          result[activityType] = {
+            type: activityType,
+            count: 0,
+            time: 0,
+          };
 
-      result[activityType].time += parseInt(activityDuration);
-      result[activityType].count++;
+        result[activityType].time += parseInt(activityDuration);
+        result[activityType].count++;
 
-      return result;
-    }, {})
+        return result;
+      }, {})
+    )
   );
 }
 
 function formatActivitiesForColumnsChart(activities) {
-  return activities && Object.values( 
-    activities.reduce((result, { activityType, activityDuration, dayOfWeek }) => {
+  return (
+    activities &&
+    Object.values(
+      activities.reduce(
+        (result, { activityType, activityDuration, dayOfWeek }) => {
+          // Create new group
+          if (!result.length)
+            result = getWeekDays(locale).map((day) => {
+              return {
+                dayOfWeek: day,
+                activities: [],
+              };
+            });
 
-      // Create new group
-      if (!result.length)
-        result = getWeekDays(locale).map((day) => { return {
-          dayOfWeek: day,
-          activities: []
-          }
-        });
-      
-      const dayIndex = result.findIndex((day) => day.dayOfWeek == dayOfWeek);
+          const dayIndex = result.findIndex(
+            (day) => day.dayOfWeek == dayOfWeek
+          );
 
-      if (!result[dayIndex].activities.find((activity) => activity.type== activityType))
-      result[dayIndex].activities.push({
-        type: activityType,
-        count: 0,
-        time: 0,
-      });
+          if (
+            !result[dayIndex].activities.find(
+              (activity) => activity.type == activityType
+            )
+          )
+            result[dayIndex].activities.push({
+              type: activityType,
+              count: 0,
+              time: 0,
+            });
 
-      const activityIndex = result[dayIndex].activities.findIndex((activity) => activity.type== activityType);
+          const activityIndex = result[dayIndex].activities.findIndex(
+            (activity) => activity.type == activityType
+          );
 
-      result[dayIndex].activities[activityIndex].time += parseInt(activityDuration);
-      result[dayIndex].activities[activityIndex].count++;
+          result[dayIndex].activities[activityIndex].time +=
+            parseInt(activityDuration);
+          result[dayIndex].activities[activityIndex].count++;
 
-      return result;
-    }, {})
+          return result;
+        },
+        {}
+      )
+    )
   );
 }
 
 function filterActivitiesByDateRange(activities, dateStart, dateEnd) {
   return activities.filter((activity) => {
-
     const activityEndDate = addMinutes(
       activity.activityDate,
       activity.activityDuration
