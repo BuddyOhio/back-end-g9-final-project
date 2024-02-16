@@ -2,10 +2,40 @@ import express from "express";
 import { ObjectId } from "mongodb";
 import { format } from "date-fns";
 import bcrypt from "bcrypt";
+import multer from "multer";
+import { v4 as uuid } from "uuid";
 
 import databaseClient from "../services/database.mjs";
 
 const router = express.Router();
+
+// Check upload image file type
+const MIME_TYPE_MAP = {
+  "image/png": "png",
+  "image/jpeg": "jpeg",
+  "image/jpg": "jpg",
+};
+
+// fileUpload middle ware
+const fileUpload = multer({
+  limits: 500000,
+  storage: multer.diskStorage({
+    destination: (req, file, cb) => {
+      cb(null, "uploads/images");
+    },
+    filename: (req, file, cb) => {
+      const ext = MIME_TYPE_MAP[file.mimetype];
+      cb(null, uuid() + "." + ext);
+    },
+  }),
+  // Filter IMAGE ONLY!
+  fileFilter: (req, file, cb) => {
+    // Check to find if there any mime type
+    const isValid = !!MIME_TYPE_MAP[file.mimetype];
+    let error = isValid ? null : new Error("Invalid mime type");
+    cb(error, isValid);
+  },
+});
 
 // Function: Check if email is valid
 const isValidEmail = (email) => {
@@ -58,11 +88,12 @@ router.get("/edit-profile", async (req, res) => {
 });
 
 // UPDATE user data
-router.put("/edit-profile", async (req, res) => {
+router.put("/edit-profile", fileUpload.single("image"), async (req, res) => {
   try {
     // Check access token
     if (!req.data_token) {
       res.status(401).send("You're not login");
+      return; // Exit early
     }
 
     // Get userId from Token
@@ -70,21 +101,30 @@ router.put("/edit-profile", async (req, res) => {
 
     const { fullName, dob, gender, weight, height } = req.body;
 
+    // Prepare update fields
+    const updateFields = {
+      fullName,
+      dob,
+      gender,
+      weight,
+      height,
+    };
+
+    // Add imageUrl to updateFields if a new image is uploaded
+    if (req.file) {
+      updateFields.imageUrl = req.file.path;
+    }
+
     const result = await databaseClient
       .db()
       .collection("users_profile")
       .updateOne(
-        { _id: new ObjectId(userId) }, // Assuming you are updating a specific user's profile
+        { _id: new ObjectId(userId) },
         {
-          $set: {
-            fullName,
-            dob,
-            gender,
-            weight,
-            height,
-          },
+          $set: updateFields,
         }
       );
+
     // Check if any changes happen
     if (result.modifiedCount === 1) {
       res.status(200).json({ message: "Profile updated successfully" });
