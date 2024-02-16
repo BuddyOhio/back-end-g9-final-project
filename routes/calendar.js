@@ -14,7 +14,7 @@ router.get("/date/:date", async (req, res) => {
     }
 
     const userId = req.data_token.userId;
-    // console.log("userId => ", userId);
+    console.log("userId => ", userId);
 
     // Get dateByUser from Client
     const dateByUser = req.params.date;
@@ -22,12 +22,12 @@ router.get("/date/:date", async (req, res) => {
     const dateBefore = new Date(dateAfter);
     dateBefore.setDate(dateAfter.getDate() + 1);
 
-    // console.log("dateByUser => ", dateByUser);
-    // console.log("dateByUser type => ", typeof dateByUser);
-    // console.log("dateAfter => ", dateAfter);
-    // console.log("dateAfter type => ", typeof dateAfter);
-    // console.log("dateBefore => ", dateBefore);
-    // console.log("dateBefore type => ", typeof dateBefore);
+    console.log("dateByUser => ", dateByUser);
+    console.log("dateByUser type => ", typeof dateByUser);
+    console.log("dateAfter => ", dateAfter);
+    console.log("dateAfter type => ", typeof dateAfter);
+    console.log("dateBefore => ", dateBefore);
+    console.log("dateBefore type => ", typeof dateBefore);
 
     // Database
     const data = await databaseClient
@@ -59,7 +59,7 @@ router.get("/date/:date", async (req, res) => {
       };
     });
 
-    // console.log("sendActivities => ", sendActivities);
+    console.log("sendActivities => ", sendActivities);
 
     // Response
     res.status(200).json(sendActivities);
