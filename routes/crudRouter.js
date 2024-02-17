@@ -75,7 +75,7 @@ router.get("/", async (req, res) => {
       };
     });
 
-    console.log("sendAllActivities from get = > ", sendAllActivities);
+    // console.log("sendAllActivities from get = > ", sendAllActivities);
 
     // Response
     res.status(200).json(sendAllActivities);
@@ -150,11 +150,11 @@ router.post("/", async (req, res) => {
       currDate = addHours(currDate, 7);
     }
 
-    console.log("activityName from post => ", body.activityName);
-    console.log("activityDate body from post => ", body.activityDate);
-    console.log("activityTime body from post => ", body.activityTime);
-    console.log("actDate from post => ", actDate);
-    console.log("currDate from post => ", currDate);
+    // console.log("activityName from post => ", body.activityName);
+    // console.log("activityDate body from post => ", body.activityDate);
+    // console.log("activityTime body from post => ", body.activityTime);
+    // console.log("actDate from post => ", actDate);
+    // console.log("currDate from post => ", currDate);
 
     const status = actDate > currDate ? "up comming" : "completed";
     // console.log("status => ", status);
@@ -250,11 +250,11 @@ router.put("/", async (req, res) => {
       currDate = addHours(currDate, 7);
     }
 
-    console.log("activityName from put => ", body.activityName);
-    console.log("activityDate body from put => ", body.activityDate);
-    console.log("activityTime body from put => ", body.activityTime);
-    console.log("actDate from put => ", actDate);
-    console.log("currDate from put => ", currDate);
+    // console.log("activityName from put => ", body.activityName);
+    // console.log("activityDate body from put => ", body.activityDate);
+    // console.log("activityTime body from put => ", body.activityTime);
+    // console.log("actDate from put => ", actDate);
+    // console.log("currDate from put => ", currDate);
 
     const status = actDate > currDate ? "up comming" : "completed";
 
