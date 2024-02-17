@@ -13,10 +13,13 @@ import {
 const router = express.Router();
 const locale = "en-us";
 
-router.get("/get-dashboard-activities", async (req, res) => {
+router.post("/get-dashboard-activities", async (req, res) => {
   // Check access token
   if (!req.data_token) {
     res.status(401).send("You're not login");
+  }
+  if (!req.body.currentDate) {
+    return res.status(400).send({ error: { message: "Missing current date" } });
   }
 
   // Get userId from Token
@@ -50,7 +53,7 @@ router.get("/get-dashboard-activities", async (req, res) => {
   }
 
   // Daily activities donut chart
-  const currentDate = new Date();
+  const currentDate = new Date(req.body.currentDate);
   const currentDateStart = new Date(currentDate.setHours(0, 0, 0, 0));
   const currentDateEnd = new Date(currentDate.setHours(23, 59, 59, 999));
 
