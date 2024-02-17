@@ -24,9 +24,13 @@ router.get("/", async (req, res) => {
 
     // 0 for Sunday, 1 for Monday
     const options = { weekStartsOn: 1 };
-    const firstDateOfWeek = startOfWeek(currDate, options);
+    let firstDateOfWeek = startOfWeek(currDate, options);
+    if (process.env.NODE_ENV === "production") {
+      firstDateOfWeek = addHours(firstDateOfWeek, -7);
+    }
 
     console.log("firstDateOfWeek => ", firstDateOfWeek);
+    console.log("firstDateOfWeek type => ",typeof firstDateOfWeek);
     console.log("firstDateOfWeek new Date => ", new Date(firstDateOfWeek));
     // firstDateOfWeek =>  2024-02-11T17:00:00.000Z
 
