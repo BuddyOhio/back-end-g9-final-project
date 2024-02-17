@@ -20,9 +20,7 @@ router.get("/", async (req, res) => {
       currDate = addHours(currDate, 7);
     }
 
-    console.log("actName from post => ", body.activityName);
-    console.log("actDate from post => ", actDate);
-    console.log("currDate from post => ", currDate);
+    console.log("currDate from pet => ", currDate);
 
     // 0 for Sunday, 1 for Monday
     const options = { weekStartsOn: 1 };
@@ -54,7 +52,7 @@ router.get("/", async (req, res) => {
       )
       .toArray();
 
-    // console.log("result => ", result);
+    console.log("result from pet => ", result);
     // result =>  [
     //   { activityDate: 2024-02-13T20:00:00.000Z, activityDuration: 15 },
     //   { activityDate: 2024-02-11T17:00:00.000Z, activityDuration: 40 },
@@ -69,7 +67,7 @@ router.get("/", async (req, res) => {
       };
     });
 
-    console.log("dateStr => ", dateStr);
+    console.log("dateStr from pet => ", dateStr);
     // dateStr =>  [
     //   { activityDate: '2/14/2024, 3:00:00 AM', activityDuration: 15 },
     //   { activityDate: '2/12/2024, 12:00:00 AM', activityDuration: 40 },
@@ -84,7 +82,7 @@ router.get("/", async (req, res) => {
       return acc;
     }, {});
 
-    // console.log("sumByDate => ", sumByDate);
+    console.log("sumByDate from pet => ", sumByDate);
     // sumByDate => { '2024-02-12': 30, '2024-02-14': 35 }
 
     let rank = 0;
@@ -95,10 +93,9 @@ router.get("/", async (req, res) => {
       }
     }
 
-    // console.log("rank => ", rank);
+    console.log("rank from pet => ", rank);
 
     // Response
-    // res.status(200).json(sendEmotionRank);
     res.status(200).json({ emotionRank: rank });
   } catch (error) {
     console.log("error => ", error);

@@ -131,8 +131,14 @@ router.post("/", async (req, res) => {
     }
 
     // Format Date type string to type date
-    const actDate = new Date(body.activityDate);
-    const actTime = new Date(body.activityTime);
+    let actDate = new Date(body.activityDate);
+    if (process.env.NODE_ENV === "production") {
+      actDate = addHours(currDate, 7);
+    }
+    let actTime = new Date(body.activityTime);
+    if (process.env.NODE_ENV === "production") {
+      actTime = addHours(actTime, 7);
+    }
     const hour = actTime.getHours();
     const min = actTime.getMinutes();
 
@@ -144,7 +150,9 @@ router.post("/", async (req, res) => {
       currDate = addHours(currDate, 7);
     }
 
-    console.log("actName from post => ", body.activityName);
+    console.log("activityName from post => ", body.activityName);
+    console.log("activityDate body from post => ", body.activityDate);
+    console.log("activityTime body from post => ", body.activityTime);
     console.log("actDate from post => ", actDate);
     console.log("currDate from post => ", currDate);
 
@@ -214,9 +222,15 @@ router.put("/", async (req, res) => {
       return;
     }
 
-    // Format Date type:"string" to type:date
-    const actDate = new Date(body.activityDate);
-    const actTime = new Date(body.activityTime);
+    // Format Date type string to type date
+    let actDate = new Date(body.activityDate);
+    if (process.env.NODE_ENV === "production") {
+      actDate = addHours(currDate, 7);
+    }
+    let actTime = new Date(body.activityTime);
+    if (process.env.NODE_ENV === "production") {
+      actTime = addHours(actTime, 7);
+    }
     const hour = actTime.getHours();
     const min = actTime.getMinutes();
 
@@ -231,7 +245,9 @@ router.put("/", async (req, res) => {
       currDate = addHours(currDate, 7);
     }
 
-    console.log("actName from put => ", body.activityName);
+    console.log("activityName from put => ", body.activityName);
+    console.log("activityDate body from put => ", body.activityDate);
+    console.log("activityTime body from put => ", body.activityTime);
     console.log("actDate from put => ", actDate);
     console.log("currDate from put => ", currDate);
 
