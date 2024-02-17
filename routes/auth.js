@@ -14,7 +14,7 @@ const webServer = express.Router();
 const saltRounds = 12;
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.mailgun.org",
+  host: process.env.SMTP_HOST,
   port: 465,
   secure: true,
   auth: {
