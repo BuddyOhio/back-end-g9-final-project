@@ -25,12 +25,12 @@ router.get("/date/:date", async (req, res) => {
     let dateBefore = new Date(dateAfter);
     dateBefore.setDate(dateBefore.getDate() + 1);
 
-    console.log("dateByUser => ", dateByUser);
-    console.log("dateByUser type => ", typeof dateByUser);
-    console.log("dateAfter => ", dateAfter);
-    console.log("dateAfter type => ", typeof dateAfter);
-    console.log("dateBefore => ", dateBefore);
-    console.log("dateBefore type => ", typeof dateBefore);
+    // console.log("dateByUser => ", dateByUser);
+    // console.log("dateByUser type => ", typeof dateByUser);
+    // console.log("dateAfter => ", dateAfter);
+    // console.log("dateAfter type => ", typeof dateAfter);
+    // console.log("dateBefore => ", dateBefore);
+    // console.log("dateBefore type => ", typeof dateBefore);
 
     // Database
     const data = await databaseClient
@@ -63,7 +63,7 @@ router.get("/date/:date", async (req, res) => {
       };
     });
 
-    console.log("sendActivities from calendar => ", sendActivities);
+    // console.log("sendActivities from calendar => ", sendActivities);
 
     // Response
     res.status(200).json(sendActivities);
