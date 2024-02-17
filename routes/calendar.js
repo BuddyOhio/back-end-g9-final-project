@@ -18,23 +18,15 @@ router.get("/date/:date", async (req, res) => {
 
     // Get dateByUser from Client
     const dateByUser = req.params.date;
-    const dateAfter = new Date(dateByUser);
+    let dateAfter = new Date(dateByUser);
+    let dateBefore = dateAfter.setDate(dateAfter.getDate() + 1);
 
-    let dateUTCAfter = dateAfter;
-    if (process.env.NODE_ENV === "production") {
-      dateUTCAfter = addHours(dateAfter, -7);
-    }
-    const dateBefore = new Date(dateUTCAfter);
-    dateBefore.setDate(dateUTCAfter.getDate() + 1);
-
-    // console.log("dateByUser => ", dateByUser);
-    // console.log("dateByUser type => ", typeof dateByUser);
-    // console.log("dateAfter => ", dateAfter);
-    // console.log("dateAfter type => ", typeof dateAfter);
-    // console.log("dateUTCAfter => ", dateUTCAfter);
-    // console.log("dateUTCAfter type => ", typeof dateUTCAfter);
-    // console.log("dateBefore => ", dateBefore);
-    // console.log("dateBefore type => ", typeof dateBefore);
+    console.log("dateByUser => ", dateByUser);
+    console.log("dateByUser type => ", typeof dateByUser);
+    console.log("dateAfter => ", dateAfter);
+    console.log("dateAfter type => ", typeof dateAfter);
+    console.log("dateBefore => ", dateBefore);
+    console.log("dateBefore type => ", typeof dateBefore);
 
     // Database
     const data = await databaseClient
@@ -43,7 +35,7 @@ router.get("/date/:date", async (req, res) => {
       .find({
         userId: new ObjectId(userId),
         activityDate: {
-          $gte: dateUTCAfter,
+          $gte: dateAfter,
           $lt: dateBefore,
         },
       })
@@ -63,11 +55,11 @@ router.get("/date/:date", async (req, res) => {
         activityDateStr: format(currDate, "iii MMM dd yyyy"),
         activityTimeStr: format(currDate, "HH:mm"),
         activityId: _id,
-        activityDate: currDate,
+        activityDate,
       };
     });
 
-    // console.log("sendActivities => ", sendActivities);
+    console.log("sendActivities from calendar => ", sendActivities);
 
     // Response
     res.status(200).json(sendActivities);
