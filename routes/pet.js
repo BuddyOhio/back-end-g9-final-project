@@ -26,7 +26,8 @@ router.get("/", async (req, res) => {
     const options = { weekStartsOn: 1 };
     const firstDateOfWeek = startOfWeek(currDate, options);
 
-    // console.log("firstDateOfWeek => ", new Date(firstDateOfWeek));
+    console.log("firstDateOfWeek => ", firstDateOfWeek);
+    console.log("firstDateOfWeek new Date => ", new Date(firstDateOfWeek));
     // firstDateOfWeek =>  2024-02-11T17:00:00.000Z
 
     const result = await databaseClient
