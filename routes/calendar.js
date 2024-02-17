@@ -19,7 +19,15 @@ router.get("/date/:date", async (req, res) => {
     // Get dateByUser from Client
     const dateByUser = req.params.date;
     let dateAfter = new Date(dateByUser);
-    let dateBefore = dateAfter.setDate(dateAfter.getDate() + 1);
+    if (process.env.NODE_ENV === "production") {
+      dateAfter.setDate(dateAfter.getDate() - 1);
+      dateAfter = addHours(dateAfter, -7);
+    }
+    let dateBefore = new Date(dateAfter);
+    if (process.env.NODE_ENV === "production") {
+      dateBefore.setDate(dateBefore.getDate() + 1);
+      dateBefore = addHours(dateBefore, -7);
+    }
 
     console.log("dateByUser => ", dateByUser);
     console.log("dateByUser type => ", typeof dateByUser);
