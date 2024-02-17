@@ -15,10 +15,18 @@ router.get("/", async (req, res) => {
     // Get userId from Token
     const userId = req.data_token.userId;
 
-    const currentDate = new Date();
+    let currDate = new Date();
+    if (process.env.NODE_ENV === "production") {
+      currDate = addHours(currDate, 7);
+    }
+
+    console.log("actName from post => ", body.activityName);
+    console.log("actDate from post => ", actDate);
+    console.log("currDate from post => ", currDate);
+
     // 0 for Sunday, 1 for Monday
     const options = { weekStartsOn: 1 };
-    const firstDateOfWeek = startOfWeek(currentDate, options);
+    const firstDateOfWeek = startOfWeek(currDate, options);
 
     // console.log("firstDateOfWeek => ", new Date(firstDateOfWeek));
     // firstDateOfWeek =>  2024-02-11T17:00:00.000Z
@@ -61,7 +69,7 @@ router.get("/", async (req, res) => {
       };
     });
 
-    // console.log("dateStr => ", dateStr);
+    console.log("dateStr => ", dateStr);
     // dateStr =>  [
     //   { activityDate: '2/14/2024, 3:00:00 AM', activityDuration: 15 },
     //   { activityDate: '2/12/2024, 12:00:00 AM', activityDuration: 40 },
@@ -76,8 +84,8 @@ router.get("/", async (req, res) => {
       return acc;
     }, {});
 
-    // sumByDate => { '2024-02-12': 30, '2024-02-14': 35 }
     // console.log("sumByDate => ", sumByDate);
+    // sumByDate => { '2024-02-12': 30, '2024-02-14': 35 }
 
     let rank = 0;
 
