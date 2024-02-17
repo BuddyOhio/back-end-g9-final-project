@@ -71,6 +71,7 @@ router.get("/", async (req, res) => {
         activityDateStr: format(currDate, "iii MMM dd yyyy"),
         activityTimeStr: format(currDate, "HH:mm"),
         activityId: _id,
+        activityDate,
       };
     });
 
