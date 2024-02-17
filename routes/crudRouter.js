@@ -54,13 +54,13 @@ router.get("/", async (req, res) => {
 
     // Format date before response to Client
     const sendAllActivities = allActivity.map((activity) => {
-      const { _id, ...rest } = activity;
+      const { _id, activityDate, ...rest } = activity;
 
       // console.log("activityDate => ", activity.activityDate);
 
-      let currDate = activity.activityDate;
+      let currDate = activityDate;
       if (process.env.NODE_ENV === "production") {
-        currDate = addHours(activity.activityDate, 7);
+        currDate = addHours(activityDate, 7);
       }
       // console.log("currDate => ", currDate);
       // console.log("currDate format => ", format(currDate, "iii MMM dd yyyy"));
@@ -71,10 +71,11 @@ router.get("/", async (req, res) => {
         activityDateStr: format(currDate, "iii MMM dd yyyy"),
         activityTimeStr: format(currDate, "HH:mm"),
         activityId: _id,
+        activityDate: currDate,
       };
     });
 
-    // console.log("sendAllActivities = > ", sendAllActivities);
+    console.log("sendAllActivities from get = > ", sendAllActivities);
 
     // Response
     res.status(200).json(sendAllActivities);
@@ -138,7 +139,16 @@ router.post("/", async (req, res) => {
     actDate.setHours(hour);
     actDate.setMinutes(min);
 
-    const status = actDate > new Date() ? "up comming" : "completed";
+    let currDate = new Date();
+    if (process.env.NODE_ENV === "production") {
+      currDate = addHours(currDate, 7);
+    }
+
+    console.log("actName from post => ", body.activityName);
+    console.log("actDate from post => ", actDate);
+    console.log("currDate from post => ", currDate);
+
+    const status = actDate > currDate ? "up comming" : "completed";
     // console.log("status => ", status);
 
     // เอา activityTime ออก
@@ -216,16 +226,28 @@ router.put("/", async (req, res) => {
     // แยก activityTime, activityID ออกจาก object
     const { activityID, activityTime, ...rest } = body;
 
-    const addFotmatDate = {
+    let currDate = new Date();
+    if (process.env.NODE_ENV === "production") {
+      currDate = addHours(currDate, 7);
+    }
+
+    console.log("actName from put => ", body.activityName);
+    console.log("actDate from put => ", actDate);
+    console.log("currDate from put => ", currDate);
+
+    const status = actDate > currDate ? "up comming" : "completed";
+
+    const activityUpdate = {
       ...rest,
       activityDate: actDate,
+      activityStatus: status,
     };
 
     // Database
     await databaseClient
       .db()
       .collection("users_activities")
-      .updateOne({ _id: new ObjectId(activityID) }, { $set: addFotmatDate });
+      .updateOne({ _id: new ObjectId(activityID) }, { $set: activityUpdate });
 
     // Response
     res.status(200).send("Update activity seccess");

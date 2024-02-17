@@ -14,7 +14,7 @@ router.get("/date/:date", async (req, res) => {
     }
 
     const userId = req.data_token.userId;
-    console.log("userId => ", userId);
+    // console.log("userId => ", userId);
 
     // Get dateByUser from Client
     const dateByUser = req.params.date;
@@ -51,11 +51,11 @@ router.get("/date/:date", async (req, res) => {
 
     // Format date before response to Client
     const sendActivities = data.map((activity) => {
-      const { _id, userId, ...rest } = activity;
+      const { _id, userId, activityDate, ...rest } = activity;
 
-      let currDate = activity.activityDate;
+      let currDate = activityDate;
       if (process.env.NODE_ENV === "production") {
-        currDate = addHours(activity.activityDate, 7);
+        currDate = addHours(activityDate, 7);
       }
       // object date to string date
       return {
@@ -63,6 +63,7 @@ router.get("/date/:date", async (req, res) => {
         activityDateStr: format(currDate, "iii MMM dd yyyy"),
         activityTimeStr: format(currDate, "HH:mm"),
         activityId: _id,
+        activityDate: currDate,
       };
     });
 
