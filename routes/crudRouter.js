@@ -54,7 +54,7 @@ router.get("/", async (req, res) => {
 
     // Format date before response to Client
     const sendAllActivities = allActivity.map((activity) => {
-      const { _id, ...rest } = activity;
+      const { _id, activityDate, ...rest } = activity;
 
       // console.log("activityDate => ", activity.activityDate);
 
@@ -71,6 +71,7 @@ router.get("/", async (req, res) => {
         activityDateStr: format(currDate, "iii MMM dd yyyy"),
         activityTimeStr: format(currDate, "HH:mm"),
         activityId: _id,
+        activityDate,
       };
     });
 
