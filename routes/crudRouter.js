@@ -133,7 +133,7 @@ router.post("/", async (req, res) => {
     // Format Date type string to type date
     let actDate = new Date(body.activityDate);
     if (process.env.NODE_ENV === "production") {
-      actDate = addHours(currDate, 7);
+      actDate = addHours(actDate, 7);
     }
     let actTime = new Date(body.activityTime);
     if (process.env.NODE_ENV === "production") {
