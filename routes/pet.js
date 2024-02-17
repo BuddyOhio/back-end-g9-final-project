@@ -30,7 +30,7 @@ router.get("/", async (req, res) => {
     }
 
     console.log("firstDateOfWeek => ", firstDateOfWeek);
-    console.log("firstDateOfWeek type => ",typeof firstDateOfWeek);
+    console.log("firstDateOfWeek type => ", typeof firstDateOfWeek);
     console.log("firstDateOfWeek new Date => ", new Date(firstDateOfWeek));
     // firstDateOfWeek =>  2024-02-11T17:00:00.000Z
 
@@ -66,8 +66,12 @@ router.get("/", async (req, res) => {
     // ]
 
     const dateStr = result.map((item) => {
+      let actDate = item.activityDate;
+      if (process.env.NODE_ENV === "production") {
+        actDate = addHours(actDate, 7);
+      }
       return {
-        activityDate: item.activityDate.toLocaleString(),
+        activityDate: actDate.toLocaleString(),
         activityDuration: item.activityDuration,
       };
     });
