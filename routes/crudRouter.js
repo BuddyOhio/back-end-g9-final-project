@@ -162,9 +162,14 @@ router.post("/", async (req, res) => {
     // เอา activityTime ออก
     const { activityTime, ...rest } = body;
 
+    let actDateDB = actDate;
+    if (process.env.NODE_ENV === "production") {
+      actDateDB = addHours(actDateDB, -7);
+    }
+
     const addUserId = {
       ...rest,
-      activityDate: actDate,
+      activityDate: actDateDB,
       userId: new ObjectId(userId),
       activityStatus: status,
     };
@@ -225,7 +230,7 @@ router.put("/", async (req, res) => {
     // Format Date type string to type date
     let actDate = new Date(body.activityDate);
     if (process.env.NODE_ENV === "production") {
-      actDate = addHours(currDate, 7);
+      actDate = addHours(actDate, 7);
     }
     let actTime = new Date(body.activityTime);
     if (process.env.NODE_ENV === "production") {
@@ -253,9 +258,14 @@ router.put("/", async (req, res) => {
 
     const status = actDate > currDate ? "up comming" : "completed";
 
+    let actDateDB = actDate;
+    if (process.env.NODE_ENV === "production") {
+      actDateDB = addHours(actDateDB, -7);
+    }
+
     const activityUpdate = {
       ...rest,
-      activityDate: actDate,
+      activityDate: actDateDB,
       activityStatus: status,
     };
 
