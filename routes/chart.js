@@ -13,13 +13,10 @@ import {
 const router = express.Router();
 const locale = "en-us";
 
-router.post("/get-dashboard-activities", async (req, res) => {
+router.get("/get-dashboard-activities", async (req, res) => {
   // Check access token
   if (!req.data_token) {
     res.status(401).send("You're not login");
-  }
-  if (!req.body.currentDate) {
-    return res.status(400).send({ error: { message: "Missing current date" } });
   }
 
   // Get userId from Token
@@ -53,7 +50,7 @@ router.post("/get-dashboard-activities", async (req, res) => {
   }
 
   // Daily activities donut chart
-  const currentDate = new Date(req.body.currentDate);
+  const currentDate = new Date();
   const currentDateStart = new Date(currentDate.setHours(0, 0, 0, 0));
   const currentDateEnd = new Date(currentDate.setHours(23, 59, 59, 999));
 
@@ -168,7 +165,15 @@ function filterActivitiesByDateRange(activities, dateStart, dateEnd) {
       activity.activityDuration
     );
 
-    return dateStart <= activityEndDate && activityEndDate <= dateEnd;
+    // fix timezone on production because timezone information is missing when saving to database
+    let utcDateStart = dateStart;
+    let utcDateEnd = dateEnd;
+    if (process.env.NODE_ENV === "production") {
+      utcDateStart = new Date(addHours(utcDateStart, -7));
+      utcDateEnd = new Date(addHours(utcDateEnd, -7));
+    }
+
+    return utcDateStart <= activityEndDate && activityEndDate <= utcDateEnd;
   });
 }
 
