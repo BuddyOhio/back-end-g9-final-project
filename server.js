@@ -5,7 +5,6 @@ import chart from "./routes/chart.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import pet from "./routes/pet.js";
-import jwt from "jsonwebtoken";
 import auth from "./routes/auth.js";
 import crudRouter from "./routes/crudRouter.js";
 import editProfile from "./routes/editProfile.js";

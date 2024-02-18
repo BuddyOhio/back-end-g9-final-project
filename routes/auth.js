@@ -5,8 +5,32 @@ import bcrypt from "bcrypt";
 import { Schema, Types } from "mongoose";
 import dayjs from "dayjs";
 import { authorization } from "../services/middlewares.mjs";
+import nodemailer from "nodemailer";
+import { v4 as uuidv4 } from "uuid";
+import { ObjectId } from "mongodb";
 
 const webServer = express.Router();
+
+const saltRounds = 12;
+
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: 465,
+  secure: true,
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS,
+  },
+});
+
+transporter.verify((error) => {
+  if (error) {
+    console.log("Nodemailer is not ready", error);
+  } else {
+    console.log("Nodemailer is ready to send emails");
+  }
+});
+
 // สร้าง database schema
 const userSchema = new Schema(
   {
@@ -78,7 +102,6 @@ webServer.post("/register", async (req, res) => {
   }
 
   // hashing password
-  const saltRounds = 12;
   const hashedPassword = await bcrypt.hash(password, saltRounds);
 
   // สร้าง instance จาก model
@@ -172,6 +195,136 @@ webServer.get("/logout", (req, res) => {
     .clearCookie("access_token", { sameSite: "none", secure: true })
     .status(200)
     .json({ messgae: "Successfully logged out" });
+});
+
+webServer.post("/forget-password/email", async (req, res) => {
+  try {
+    const email = req.body.email;
+    if (!email) {
+      return res.status(400).json({ error: { message: "email not provided" } });
+    }
+    if (!isValidEmail(email)) {
+      return res.status(400).send({ error: { message: "invalid email" } });
+    }
+
+    const user = await databaseClient
+      .db()
+      .collection("users_profile")
+      .findOne({ email });
+
+    if (!user) {
+      console.log(`Reset password request from unknown email ${email}`);
+      return res.json({ message: "reset password request accepted" });
+    }
+
+    const resetKey = uuidv4();
+
+    await databaseClient
+      .db()
+      .collection("users_profile")
+      .updateOne(
+        { _id: new ObjectId(user._id) },
+        { $set: { resetPasswordKey: resetKey } }
+      );
+
+    const mailOptions = {
+      from: process.env.SMTP_SENDER,
+      to: email,
+      subject: "[Siberian Whiskey] Reset your password",
+      html: `
+    <h1>Reset your password</h1>
+    <p>Please follow this link to <a href="https://doggo-project.vercel.app/change-password-account?key=${resetKey}">reset your password</a></p>
+    `,
+    };
+
+    await transporter.sendMail(mailOptions);
+    console.log("Email has been sent!");
+    return res.json({ message: "reset password request accepted" });
+  } catch (e) {
+    console.log("Failed to send email with error:", e);
+    return res.status(500).json({ error: { message: "failed to send email" } });
+  }
+});
+
+webServer.get("/forget-password/validate", async (req, res) => {
+  try {
+    const resetPasswordKey = req.query.key;
+    if (!resetPasswordKey) {
+      return res.status(400).json({ error: { message: "key is missing" } });
+    }
+
+    const user = await databaseClient
+      .db()
+      .collection("users_profile")
+      .findOne({ resetPasswordKey });
+
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          message: "no one is associated with this reset password key",
+        },
+      });
+    }
+
+    return res.status(200).json({ message: "key is validated" });
+  } catch (e) {
+    console.log("Reset password key validation failed with error", e);
+    return res
+      .status(500)
+      .json({ error: { message: "failed to validate reset password key" } });
+  }
+});
+
+webServer.post("/forget-password/reset", async (req, res) => {
+  try {
+    const newPassword = req.body.newPassword;
+    const confirmPassword = req.body.confirmPassword;
+    const resetPasswordKey = req.body.resetPasswordKey;
+
+    if (!resetPasswordKey) {
+      return res.status(400).json({ error: { message: "key is missing" } });
+    }
+    if (newPassword === "") {
+      return res
+        .status(400)
+        .json({ error: { message: "please provide password" } });
+    }
+    if (newPassword !== confirmPassword) {
+      return res.status(400).json({ error: { message: "password mismatch" } });
+    }
+
+    const user = await databaseClient
+      .db()
+      .collection("users_profile")
+      .findOne({ resetPasswordKey });
+
+    if (!user) {
+      return res.status(404).json({
+        error: {
+          message: "no one is associated with this reset password key",
+        },
+      });
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+
+    await databaseClient
+      .db()
+      .collection("users_profile")
+      .updateOne(
+        { _id: new ObjectId(user._id) },
+        { $set: { password: hashedPassword }, $unset: { resetPasswordKey: "" } }
+      );
+
+    return res
+      .status(200)
+      .json({ message: "password has been successfully reset" });
+  } catch (e) {
+    console.log("Reset password failed with error", e);
+    return res
+      .status(500)
+      .json({ error: { message: "failed to reset password" } });
+  }
 });
 
 export default webServer;
